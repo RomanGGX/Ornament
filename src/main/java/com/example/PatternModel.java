@@ -3,12 +3,12 @@ package com.example;
 public class PatternModel {
     private int width;
     private int height;
-    private int[][] cells;
+    private int[][] cellColor;
 
     public PatternModel(int width, int height) {
         this.width = width;
         this.height = height;
-        this.cells = new int[width][height];
+        this.cellColor = new int[width][height];
     }
 
     public int getHeight() {
@@ -20,14 +20,14 @@ public class PatternModel {
     }
 
     public int[][] getCells() {
-        return cells;
+        return cellColor;
     }
 
-    public int getCell(int x, int y) {
-        return cells[x][y];
+    public int getCellColor(int x, int y) {
+        return cellColor[x][y];
     }
 
-    public void setCell(int x, int y, int color) {
-        cells[x][y] = color;
+    public void setCellColor(int x, int y, int colorARGB) {
+        cellColor[x][y] = colorARGB;
     }
 }
