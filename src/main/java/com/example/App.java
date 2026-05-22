@@ -21,16 +21,14 @@ import java.util.Arrays;
 
 public class App extends Application {
 
-    int width = 20;
-    int height = 20;
+    int width = 21;
+    int height = 21;
     private final int cellSize = 15;
     private Color selectedColorFX = Color.valueOf("#000000");
     private int selectedColorARGB = toArgb(selectedColorFX);
     PatternModel model = new PatternModel(width, height);
-    ColorPalette palette = new ColorPalette();
     Canvas canvas = new Canvas(width * cellSize, height * cellSize);
     GraphicsContext graphicsContext2D = canvas.getGraphicsContext2D();
-    ColorPaletteUI colorUI = new ColorPaletteUI();
     FileChooser fileChooser = new FileChooser();
 
     @Override
@@ -70,6 +68,7 @@ public class App extends Application {
         loadButton.setOnAction(e -> {
             File file = fileChooser.showOpenDialog(stage);
             if (file == null) return;
+            clearAllCells();
             try {
                 Image image = new Image(file.toURI().toString());
                 ImageSaver.loadImage(model, image);
@@ -89,6 +88,18 @@ public class App extends Application {
         stage.setTitle("Орнамент");
         stage.setScene(scene);
         stage.show();
+
+        String path = "/roman.png";
+        int offsetX = 0;
+        int offsetY = 0;
+
+        var frames = IntroAnimation.loadFrameFromPNG(path, offsetX, offsetY);
+
+        IntroAnimation animator = new IntroAnimation();
+        animator.play(frames, 1, 25, frame -> {
+            model.setCellColor(frame.x(), frame.y(), frame.argb());
+            renderAllCells();
+        });
 
         colorPicker.setOnAction(e -> {
             selectedColorFX = colorPicker.getValue();
