@@ -5,8 +5,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.*;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class App extends Application {
@@ -31,6 +32,20 @@ public class App extends Application {
     GraphicsContext graphicsContext2D = canvas.getGraphicsContext2D();
     FileChooser fileChooser = new FileChooser();
 
+    Button saveButton = new Button("Зберегти PNG");
+    Button loadButton = new Button("Відкрити PNG");
+    Button clearButton = new Button("Очистити полотно");
+    CheckBox horizontalButton = new CheckBox("Горизонтальна симетрія");
+    CheckBox verticalButton = new CheckBox("Вертикальна симетрія");
+    CheckBox fullSymmetryButton = new CheckBox("Повна симетрія");
+
+    ColorPicker colorPicker = new ColorPicker();
+    Control[] controls = {saveButton, loadButton, clearButton, horizontalButton, colorPicker};
+
+    boolean horizontalMode = false;
+    boolean verticalMode = false;
+    boolean fullSymmetry = false;
+
     @Override
     public void start(Stage stage) {
         graphicsContext2D.setFill(Color.TRANSPARENT);
@@ -42,18 +57,38 @@ public class App extends Application {
             }
         }
 
-        ColorPicker colorPicker = new ColorPicker();
         colorPicker.setValue(Color.valueOf("#000000"));
 
+        fullSymmetryButton.setOnAction(e -> {
+           if (!fullSymmetry) {
+               fullSymmetry = true;
+           } else {
+               fullSymmetry = false;
+           }
+        });
+
+        horizontalButton.setOnAction(e -> {
+            if (!horizontalMode) {
+                horizontalMode = true;
+            } else {
+                horizontalMode = false;
+            }
+        });
+
+        verticalButton.setOnAction(e -> {
+            if (!verticalMode) {
+                verticalMode = true;
+            } else {
+                verticalMode = false;
+            }
+        });
+
         //Clear canvas
-        Button clearButton = new Button("Очистити полотно");
         clearButton.setOnAction(e -> {
             clearAllCells();
         });
 
         // Saving and loading png
-        Button saveButton = new Button("Зберегти PNG");
-        Button loadButton = new Button("Відкрити PNG");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG", "*.png"));
         saveButton.setOnAction(e -> {
             File file = fileChooser.showSaveDialog(stage);
@@ -79,7 +114,7 @@ public class App extends Application {
             }
         });
 
-        VBox vbox = new VBox(canvas, colorPicker, saveButton, loadButton, clearButton);
+        VBox vbox = new VBox(canvas, colorPicker, saveButton, loadButton, clearButton, horizontalButton, verticalButton, fullSymmetryButton);
         Scene scene = new Scene(vbox);
         vbox.setAlignment(Pos.TOP_CENTER);
 
@@ -88,18 +123,8 @@ public class App extends Application {
         stage.setTitle("Орнамент");
         stage.setScene(scene);
         stage.show();
-
-        String path = "/roman.png";
-        int offsetX = 0;
-        int offsetY = 0;
-
-        var frames = IntroAnimation.loadFrameFromPNG(path, offsetX, offsetY);
-
-        IntroAnimation animator = new IntroAnimation();
-        animator.play(frames, 1, 25, frame -> {
-            model.setCellColor(frame.x(), frame.y(), frame.argb());
-            renderAllCells();
-        });
+        disableUI(true);
+        introAnimation();
 
         colorPicker.setOnAction(e -> {
             selectedColorFX = colorPicker.getValue();
@@ -117,14 +142,37 @@ public class App extends Application {
 
         if (button == MouseButton.PRIMARY) {
             model.setCellColor(x, y, selectedColorARGB);
+            if (horizontalMode) {
+                model.setCellColor(x, 10 - (y - 10), selectedColorARGB);
+            }
+            if (verticalMode) {
+                model.setCellColor(10 - (x - 10), y, selectedColorARGB);
+            }
+            if (fullSymmetry) {
+                model.setCellColor(x, 10 - (y - 10), selectedColorARGB);
+                model.setCellColor(10 - (x - 10), y, selectedColorARGB);
+                model.setCellColor(10 - (x - 10), 10 - (y - 10), selectedColorARGB);
+            }
         }
         else if (button == MouseButton.SECONDARY) {
             clearCell(x, y);
+            if (horizontalMode) {
+                clearCell(x, 10 - (y - 10));
+            }
+            if (verticalMode) {
+                clearCell(10 - (x - 10), y);
+            }
+            if (fullSymmetry) {
+                clearCell(x, 10 - (y - 10));
+                clearCell(10 - (x - 10), y);
+                clearCell(10 - (x - 10), 10 - (y - 10));
+            }
         }
         else {
             return;
         }
 
+        renderAllCells();
         renderCell(graphicsContext2D, x, y);
         System.out.println(Arrays.deepToString(model.getCells()));
     }
@@ -175,6 +223,27 @@ public class App extends Application {
         model.setCellColor(x, y, 0);
         graphicsContext2D.clearRect(x*cellSize,y*cellSize,cellSize,cellSize);
         graphicsContext2D.strokeRect(x*cellSize,y*cellSize,cellSize,cellSize);
+    }
+
+    private void introAnimation() {
+        String path = "/roman.png";
+        int offsetX = 0;
+        int offsetY = 0;
+
+        var frames = IntroAnimation.loadFrameFromPNG(path, offsetX, offsetY);
+
+        IntroAnimation animator = new IntroAnimation();
+        animator.play(frames, 1, 25, frame -> {
+            model.setCellColor(frame.x(), frame.y(), frame.argb());
+            renderAllCells();
+        }, () -> disableUI(false)
+        );
+    }
+
+    private void disableUI(boolean disabled) {
+        for (Control c : controls) {
+            c.setDisable(disabled);
+        }
     }
 
     public static void main(String[] args) {

@@ -40,7 +40,7 @@ public class IntroAnimation {
         return frames;
     }
 
-    public void play(List<Frame> frames, int cellsPerTick, int tickMs, java.util.function.Consumer<Frame> apply) {
+    public void play(List<Frame> frames, int cellsPerTick, int tickMs, java.util.function.Consumer<Frame> apply, Runnable finished) {
         stop();
         index = 0;
 
@@ -48,7 +48,12 @@ public class IntroAnimation {
             for (int i = 0; i < cellsPerTick && index < frames.size(); i++, index++) {
                 apply.accept(frames.get(index));
             }
-            if (index >= frames.size()) stop();
+            if (index >= frames.size()) {
+                stop();
+                if (finished != null) {
+                    finished.run();
+                }
+            }
         }));
 
         timeline.setCycleCount(Timeline.INDEFINITE);
