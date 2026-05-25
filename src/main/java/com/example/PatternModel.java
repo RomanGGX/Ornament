@@ -31,6 +31,7 @@ public class PatternModel {
         cellColor[x][y] = colorARGB;
     }
 
+    // Creates a new model duplicated vertically
     public PatternModel duplicateVertically() {
         PatternModel model = new PatternModel(width, height * 2);
         for (int x = 0; x < width; x++) {
@@ -43,6 +44,7 @@ public class PatternModel {
         return model;
     }
 
+    // Creates a new model duplicated horizontally
     public PatternModel duplicateHorizontally() {
         PatternModel model = new PatternModel(width * 2, height);
         for (int x = 0; x < width; x++) {

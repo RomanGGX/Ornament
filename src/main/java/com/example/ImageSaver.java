@@ -12,6 +12,8 @@ import java.io.IOException;
 
 
 public class ImageSaver {
+
+    // Exports model to a PNG file
     public static void saveImage(PatternModel model, File file) throws IOException{
         int width = model.getWidth();
         int height = model.getHeight();
@@ -28,6 +30,7 @@ public class ImageSaver {
         ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
     }
 
+    // Loads PNG pixels into the model
     public static void loadImage(PatternModel model, Image image) throws IOException {
         PixelReader pixelReader = image.getPixelReader();
         if (pixelReader == null) {

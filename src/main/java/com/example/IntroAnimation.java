@@ -15,6 +15,7 @@ public class IntroAnimation {
     private Timeline timeline;
     private int index;
 
+    // Loads pixels from a PNG as animation
     public static List<Frame> loadFrameFromPNG(String path, int x, int y) {
         InputStream inputStream = IntroAnimation.class.getResourceAsStream(path);
         if (inputStream == null) {
@@ -40,6 +41,7 @@ public class IntroAnimation {
         return frames;
     }
 
+    // Plays the animation using frames
     public void play(List<Frame> frames, int cellsPerTick, int tickMs, java.util.function.Consumer<Frame> apply, Runnable finished) {
         stop();
         index = 0;
@@ -60,6 +62,7 @@ public class IntroAnimation {
         timeline.play();
     }
 
+    // Stops animation
     public void stop() {
         if (timeline != null) {
             timeline.stop();

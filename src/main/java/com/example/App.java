@@ -51,6 +51,7 @@ public class App extends Application {
     boolean fullSymmetry = false;
     private boolean previewMode = false;
 
+    // Initializes UI, layout, event handlers
     @Override
     public void start(Stage stage) {
         renderAllCells();
@@ -186,6 +187,7 @@ public class App extends Application {
         canvas.setOnMousePressed(e -> paintCell(e.getX(), e.getY(), e.getButton()));
     }
 
+    // Paints or clears a cell based on mouse position
     private void paintCell(double mouseX, double mouseY, MouseButton button){
         if (previewMode) return;
         int x = (int) (mouseX / cellSize);
@@ -226,6 +228,7 @@ public class App extends Application {
         renderAllCells();
     }
 
+    // Converts a JavaFX Color to an ARGB number
     private int toArgb(Color c) {
         int a = (int)Math.round(c.getOpacity() * 255);
         int r = (int)Math.round(c.getRed() * 255);
@@ -234,6 +237,7 @@ public class App extends Application {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
+    // Converts an ARGB number to a JavaFX Color
     private Color fromArgb(int argb) {
         int a = (argb >>> 24) & 0xFF;
         int r = (argb >>> 16) & 0xFF;
@@ -242,6 +246,7 @@ public class App extends Application {
         return Color.rgb(r, g, b, a / 255.0);
     }
 
+    // Redraws the entire canvas
     private void renderAllCells() {
         graphicsContext2D.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // поля прозорі
 
@@ -274,6 +279,7 @@ public class App extends Application {
 
     }
 
+    // Clears all cells
     private void clearAllCells() {
         for (int y = 0; y<height; y += 1) {
             for (int x = 0; x<width; x += 1) {
@@ -282,10 +288,12 @@ public class App extends Application {
         }
     }
 
+    // Clears a single cell
     private void clearCell(int x, int y) {
         model.setCellColor(x, y, 0);
     }
 
+    // Plays the intro animation
     private void introAnimation() {
         String path = "/roman.png";
         int offsetX = 0;
@@ -301,21 +309,25 @@ public class App extends Application {
         );
     }
 
+    // Enables/disables UI controls
     private void disableUI(boolean disabled) {
         for (Control c : controls) {
             c.setDisable(disabled);
         }
     }
 
+    // Computes cell size
     private double cell() {
         return Math.min(canvas.getWidth() / viewModel.getWidth(),
                 canvas.getHeight() / viewModel.getHeight());
     }
 
+    // Computes horizontal offset to center
     private double offsetX() {
         return (canvas.getWidth() - viewModel.getWidth() * cell()) / 2.0;
     }
 
+    // Computes vertical offset to center
     private double offsetY() {
         return (canvas.getHeight() - viewModel.getHeight() * cell()) / 2.0;
     }
