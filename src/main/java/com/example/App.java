@@ -143,8 +143,7 @@ public class App extends Application {
             }
         });
 
-        Label editLabel = new Label("Редагування");
-        VBox editPanel = new VBox(10, colorPicker, horizontalButton, verticalButton, fullSymmetryButton, clearButton);
+        VBox editPanel = new VBox(10,colorPicker, horizontalButton, verticalButton, fullSymmetryButton, clearButton);
         editPanel.setStyle("-fx-padding: 12;");
         editPanel.setPrefWidth(220);
         editPanel.setAlignment(Pos.TOP_LEFT);
