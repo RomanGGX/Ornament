@@ -9,11 +9,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.awt.*;
+import java.awt.Label;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,14 +53,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        graphicsContext2D.setFill(Color.TRANSPARENT);
-        graphicsContext2D.setStroke(Color.valueOf("#000000"));
-        for (int y = 0; y<=height; y += 1) {
-            for (int x = 0; x<=width; x += 1) {
-                graphicsContext2D.fillRect(x*cellSize,y*cellSize,cellSize,cellSize);
-                graphicsContext2D.strokeRect(x*cellSize,y*cellSize,cellSize,cellSize);
-            }
-        }
+        renderAllCells();
 
         colorPicker.setValue(Color.valueOf("#000000"));
         duplicateHorizontally.setDisable(true);
@@ -147,13 +143,35 @@ public class App extends Application {
             }
         });
 
-        VBox vbox = new VBox(canvas, colorPicker, saveButton, loadButton, clearButton, horizontalButton,
-                verticalButton, fullSymmetryButton, duplicateVertically, duplicateHorizontally, previewButton);
-        Scene scene = new Scene(vbox);
-        vbox.setAlignment(Pos.TOP_CENTER);
+        Label editLabel = new Label("Редагування");
+        VBox editPanel = new VBox(10, colorPicker, horizontalButton, verticalButton, fullSymmetryButton, clearButton);
+        editPanel.setStyle("-fx-padding: 12;");
+        editPanel.setPrefWidth(220);
+        editPanel.setAlignment(Pos.TOP_LEFT);
 
-        stage.setWidth(1000);
-        stage.setHeight(600);
+        VBox duplicatePanel = new VBox(10, previewButton, duplicateVertically, duplicateHorizontally);
+        duplicatePanel.setStyle("-fx-padding: 12;");
+        duplicatePanel.setPrefWidth(220);
+        duplicatePanel.setAlignment(Pos.TOP_RIGHT);
+
+        HBox imagePanel = new HBox(10, saveButton, loadButton);
+        imagePanel.setStyle("-fx-padding: 12;");
+        imagePanel.setAlignment(Pos.CENTER);
+
+        VBox canvasPanel = new VBox(10, canvas);
+        canvasPanel.setAlignment(Pos.TOP_CENTER);
+
+        BorderPane root = new BorderPane();
+        root.setCenter(canvasPanel);
+        root.setLeft(editPanel);
+        root.setRight(duplicatePanel);
+        root.setBottom(imagePanel);
+
+        BorderPane.setAlignment(canvasPanel, Pos.TOP_CENTER);
+        Scene scene = new Scene(root);
+
+        stage.setWidth(900);
+        stage.setHeight(500);
         stage.setTitle("Орнамент (Гвоздік Роман)");
         stage.setScene(scene);
         stage.show();
@@ -231,6 +249,18 @@ public class App extends Application {
         double ox = offsetX();
         double oy = offsetY();
 
+        double dotR = cell * 0.1;
+        double dotD = dotR * 2;
+        graphicsContext2D.setFill(Color.rgb(0, 0, 0, 0.3));
+
+        for (int gx = 0; gx <= viewModel.getWidth(); gx++) {
+            double px = ox + gx * cell;
+            for (int gy = 0; gy <= viewModel.getHeight(); gy++) {
+                double py = oy + gy * cell;
+                graphicsContext2D.fillOval(px - dotR, py - dotR, dotD, dotD);
+            }
+        }
+
         for (int y = 0; y < viewModel.getHeight(); y++) {
             for (int x = 0; x < viewModel.getWidth(); x++) {
                 int argb = viewModel.getCellColor(x, y);
@@ -242,18 +272,6 @@ public class App extends Application {
             }
         }
 
-        graphicsContext2D.setStroke(Color.rgb(0, 0, 0, 0.35));
-        double fieldW = viewModel.getWidth() * cell;
-        double fieldH = viewModel.getHeight() * cell;
-
-        for (int x = 0; x <= viewModel.getWidth(); x++) {
-            double px = ox + x * cell;
-            graphicsContext2D.strokeLine(px, oy, px, oy + fieldH);
-        }
-        for (int y = 0; y <= viewModel.getHeight(); y++) {
-            double py = oy + y * cell;
-            graphicsContext2D.strokeLine(ox, py, ox + fieldW, py);
-        }
     }
 
     private void clearAllCells() {
