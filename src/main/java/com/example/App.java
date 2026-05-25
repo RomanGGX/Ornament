@@ -176,6 +176,7 @@ public class App extends Application {
         stage.setTitle("Орнамент (Гвоздік Роман)");
         stage.setScene(scene);
         stage.show();
+        canvas.setDisable(true);
         disableUI(true);
         introAnimation();
 
@@ -305,8 +306,10 @@ public class App extends Application {
         animator.play(frames, 1, 25, frame -> {
             model.setCellColor(frame.x(), frame.y(), frame.argb());
             renderAllCells();
-        }, () -> disableUI(false)
-        );
+        }, () -> {
+            canvas.setDisable(false);
+            disableUI(false);
+        });
     }
 
     // Enables/disables UI controls
