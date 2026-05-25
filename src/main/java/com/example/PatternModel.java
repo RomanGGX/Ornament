@@ -1,8 +1,8 @@
 package com.example;
 
 public class PatternModel {
-    private int width;
-    private int height;
+    private final int width;
+    private final int height;
     private int[][] cellColor;
 
     public PatternModel(int width, int height) {
@@ -29,5 +29,29 @@ public class PatternModel {
 
     public void setCellColor(int x, int y, int colorARGB) {
         cellColor[x][y] = colorARGB;
+    }
+
+    public PatternModel duplicateVertically() {
+        PatternModel model = new PatternModel(width, height * 2);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int color = getCellColor(x, y);
+                model.setCellColor(x, y, color);
+                model.setCellColor(x, y + height, color);
+            }
+        }
+        return model;
+    }
+
+    public PatternModel duplicateHorizontally() {
+        PatternModel model = new PatternModel(width * 2, height);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int color = getCellColor(x, y);
+                model.setCellColor(x, y, color);
+                model.setCellColor(x + width, y, color);
+            }
+        }
+        return model;
     }
 }

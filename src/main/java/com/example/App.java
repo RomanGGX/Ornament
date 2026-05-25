@@ -13,12 +13,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class App extends Application {
 
@@ -28,8 +25,9 @@ public class App extends Application {
     private Color selectedColorFX = Color.valueOf("#000000");
     private int selectedColorARGB = toArgb(selectedColorFX);
     PatternModel model = new PatternModel(width, height);
+    private PatternModel viewModel = model;
     Canvas canvas = new Canvas(width * cellSize, height * cellSize);
-    GraphicsContext graphicsContext2D = canvas.getGraphicsContext2D();
+    GraphicsContext graphicsContext2D   = canvas.getGraphicsContext2D();
     FileChooser fileChooser = new FileChooser();
 
     Button saveButton = new Button("Зберегти PNG");
@@ -38,13 +36,17 @@ public class App extends Application {
     CheckBox horizontalButton = new CheckBox("Горизонтальна симетрія");
     CheckBox verticalButton = new CheckBox("Вертикальна симетрія");
     CheckBox fullSymmetryButton = new CheckBox("Повна симетрія");
-
+    Button duplicateVertically = new Button("Дублювати по вертикалі");
+    Button duplicateHorizontally = new Button("Дублювати по горизонталі");
+    ToggleButton previewButton = new ToggleButton("Режим дублювання");
     ColorPicker colorPicker = new ColorPicker();
-    Control[] controls = {saveButton, loadButton, clearButton, horizontalButton, colorPicker};
+    Control[] controls = {saveButton, loadButton, clearButton, horizontalButton, colorPicker,
+            previewButton, horizontalButton, verticalButton, fullSymmetryButton};
 
     boolean horizontalMode = false;
     boolean verticalMode = false;
     boolean fullSymmetry = false;
+    private boolean previewMode = false;
 
     @Override
     public void start(Stage stage) {
@@ -58,6 +60,37 @@ public class App extends Application {
         }
 
         colorPicker.setValue(Color.valueOf("#000000"));
+        duplicateHorizontally.setDisable(true);
+        duplicateVertically.setDisable(true);
+
+        previewButton.setOnAction(e -> {
+            previewMode = previewButton.isSelected();
+            viewModel = model;
+
+            colorPicker.setDisable(previewMode);
+            clearButton.setDisable(previewMode);
+            horizontalButton.setDisable(previewMode);
+            verticalButton.setDisable(previewMode);
+            fullSymmetryButton.setDisable(previewMode);
+            duplicateVertically.setDisable(!previewMode);
+            duplicateHorizontally.setDisable(!previewMode);
+            saveButton.setDisable(previewMode);
+            loadButton.setDisable(previewMode);
+
+            renderAllCells();
+        });
+
+        duplicateVertically.setOnAction(e -> {
+            if (!previewMode) return;
+            viewModel = viewModel.duplicateVertically();
+            renderAllCells();
+        });
+
+        duplicateHorizontally.setOnAction(e -> {
+            if (!previewMode) return;
+            viewModel = viewModel.duplicateHorizontally();
+            renderAllCells();
+        });
 
         fullSymmetryButton.setOnAction(e -> {
            if (!fullSymmetry) {
@@ -114,13 +147,14 @@ public class App extends Application {
             }
         });
 
-        VBox vbox = new VBox(canvas, colorPicker, saveButton, loadButton, clearButton, horizontalButton, verticalButton, fullSymmetryButton);
+        VBox vbox = new VBox(canvas, colorPicker, saveButton, loadButton, clearButton, horizontalButton,
+                verticalButton, fullSymmetryButton, duplicateVertically, duplicateHorizontally, previewButton);
         Scene scene = new Scene(vbox);
         vbox.setAlignment(Pos.TOP_CENTER);
 
         stage.setWidth(1000);
-        stage.setHeight(500);
-        stage.setTitle("Орнамент");
+        stage.setHeight(600);
+        stage.setTitle("Орнамент (Гвоздік Роман)");
         stage.setScene(scene);
         stage.show();
         disableUI(true);
@@ -135,10 +169,9 @@ public class App extends Application {
     }
 
     private void paintCell(double mouseX, double mouseY, MouseButton button){
+        if (previewMode) return;
         int x = (int) (mouseX / cellSize);
         int y = (int) (mouseY / cellSize);
-
-        System.out.println("painted at:" + x + " and " + y);
 
         if (button == MouseButton.PRIMARY) {
             model.setCellColor(x, y, selectedColorARGB);
@@ -173,16 +206,6 @@ public class App extends Application {
         }
 
         renderAllCells();
-        renderCell(graphicsContext2D, x, y);
-        System.out.println(Arrays.deepToString(model.getCells()));
-    }
-
-    private void renderCell(GraphicsContext gc, int x, int y) {
-        gc.setFill(fromArgb(model.getCellColor(x, y)));
-        gc.fillRect(x*cellSize,y*cellSize,cellSize,cellSize);
-
-        gc.setStroke(Color.valueOf("#000000"));
-        gc.strokeRect(x*cellSize,y*cellSize,cellSize,cellSize);
     }
 
     private int toArgb(Color c) {
@@ -202,10 +225,34 @@ public class App extends Application {
     }
 
     private void renderAllCells() {
-        for (int y = 0; y<height; y += 1) {
-            for (int x = 0; x<width; x += 1) {
-                renderCell(graphicsContext2D, x, y);
+        graphicsContext2D.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // поля прозорі
+
+        double cell = cell();
+        double ox = offsetX();
+        double oy = offsetY();
+
+        for (int y = 0; y < viewModel.getHeight(); y++) {
+            for (int x = 0; x < viewModel.getWidth(); x++) {
+                int argb = viewModel.getCellColor(x, y);
+                int a = (argb >>> 24) & 0xFF;
+                if (a == 0) continue;
+
+                graphicsContext2D.setFill(fromArgb(argb));
+                graphicsContext2D.fillRect(ox + x * cell, oy + y * cell, cell, cell);
             }
+        }
+
+        graphicsContext2D.setStroke(Color.rgb(0, 0, 0, 0.35));
+        double fieldW = viewModel.getWidth() * cell;
+        double fieldH = viewModel.getHeight() * cell;
+
+        for (int x = 0; x <= viewModel.getWidth(); x++) {
+            double px = ox + x * cell;
+            graphicsContext2D.strokeLine(px, oy, px, oy + fieldH);
+        }
+        for (int y = 0; y <= viewModel.getHeight(); y++) {
+            double py = oy + y * cell;
+            graphicsContext2D.strokeLine(ox, py, ox + fieldW, py);
         }
     }
 
@@ -244,6 +291,19 @@ public class App extends Application {
         for (Control c : controls) {
             c.setDisable(disabled);
         }
+    }
+
+    private double cell() {
+        return Math.min(canvas.getWidth() / viewModel.getWidth(),
+                canvas.getHeight() / viewModel.getHeight());
+    }
+
+    private double offsetX() {
+        return (canvas.getWidth() - viewModel.getWidth() * cell()) / 2.0;
+    }
+
+    private double offsetY() {
+        return (canvas.getHeight() - viewModel.getHeight() * cell()) / 2.0;
     }
 
     public static void main(String[] args) {
