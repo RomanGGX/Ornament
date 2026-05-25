@@ -115,6 +115,7 @@ public class App extends Application {
         //Clear canvas
         clearButton.setOnAction(e -> {
             clearAllCells();
+            renderAllCells();
         });
 
         // Saving and loading png
@@ -277,16 +278,12 @@ public class App extends Application {
         for (int y = 0; y<height; y += 1) {
             for (int x = 0; x<width; x += 1) {
                 model.setCellColor(x, y, 0);
-                graphicsContext2D.clearRect(x*cellSize,y*cellSize,cellSize,cellSize);
-                graphicsContext2D.strokeRect(x*cellSize,y*cellSize,cellSize,cellSize);
             }
         }
     }
 
     private void clearCell(int x, int y) {
         model.setCellColor(x, y, 0);
-        graphicsContext2D.clearRect(x*cellSize,y*cellSize,cellSize,cellSize);
-        graphicsContext2D.strokeRect(x*cellSize,y*cellSize,cellSize,cellSize);
     }
 
     private void introAnimation() {
